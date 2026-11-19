@@ -4,6 +4,7 @@ import { DepotInterventionsDrizzle } from '../../infrastructure/persistance/depo
 import { DepotReferentielDrizzle } from '../../infrastructure/persistance/depot-referentiel.drizzle';
 import { gestionErreurs } from './erreurs';
 import { identification } from './identification';
+import { routesInterventions } from './interventions.routes';
 
 /** Assemble l'application. Sans écoute réseau, pour être testée avec supertest. */
 export function creerApp(db: BaseDeDonnees) {
@@ -15,6 +16,7 @@ export function creerApp(db: BaseDeDonnees) {
   const app = express();
   app.use(express.json());
   app.use(identification(depots.referentiel));
+  app.use(routesInterventions(depots));
   app.use((_req, res) => {
     res.status(404).json({ code: 'ROUTE_INCONNUE', message: 'Route inconnue.' });
   });
