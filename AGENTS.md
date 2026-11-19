@@ -55,8 +55,8 @@ src/
     referentiel/
     commun/         DateHeureParis, Periode
   application/      cas d'usage (un fichier par cas) + droits CASL (droits.ts)
-  infrastructure/   schéma Drizzle, implémentation des dépôts, seed, génération CSV
-  interface/http/   app Express, routes, schémas Zod, identification, erreurs → HTTP
+  infrastructure/   schéma Drizzle, implémentation des dépôts, référentiel de démonstration
+  interface/http/   app Express, routes, schémas Zod, identification, erreurs → HTTP, présentation JSON et CSV
   server.ts
 drizzle/            migrations générées (ne pas éditer à la main)
 tests/integration/

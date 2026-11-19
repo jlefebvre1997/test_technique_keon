@@ -41,7 +41,7 @@
 ### 3.2 Couches et dépendances
 
 ```
-interface (HTTP Express)   routes, validation Zod, identification, traduction des erreurs en codes HTTP
+interface (HTTP Express)   routes, validation Zod, identification, erreurs → codes HTTP, présentation JSON et CSV
       │
 application                cas d'usage : créer, démarrer, clôturer, modifier, corriger la durée, lister, exporter
       │                    contrôle des droits (CASL), puis appel du domaine, puis persistance via les dépôts
@@ -49,7 +49,7 @@ application                cas d'usage : créer, démarrer, clôturer, modifier,
 domaine                    agrégat Intervention, objets-valeurs, machine à états, erreurs métier,
       ▲                    interfaces des dépôts
       │
-infrastructure             schéma Drizzle, implémentation des dépôts, migrations, données initiales, CSV
+infrastructure             schéma Drizzle, implémentation des dépôts, migrations, données initiales
 ```
 
 Règles de dépendance :

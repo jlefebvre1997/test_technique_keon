@@ -24,3 +24,8 @@ export const filtresListe = z.strictObject({
   du: z.string().optional(),
   au: z.string().optional(),
 });
+
+export const periodeExport = z.strictObject({
+  du: z.string().optional(),
+  au: z.string().optional(),
+});
