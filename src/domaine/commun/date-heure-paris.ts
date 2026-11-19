@@ -6,7 +6,6 @@ export const ZONE_PARIS = IANAZone.create('Europe/Paris');
 
 const FORMAT_SAISIE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;
 const FORMAT_STOCKAGE = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-const TROIS_HEURES_MS = 3 * 60 * 60 * 1000;
 
 /**
  * Un instant, saisi et restitué en heure de Paris, stocké en UTC.
@@ -18,28 +17,24 @@ export class DateHeureParis {
 
   /** Saisie au format AAAA-MM-JJTHH:MM[:SS], heure locale de Paris, sans décalage. */
   static depuisSaisie(valeur: string): DateHeureParis {
-    const murale = FORMAT_SAISIE.test(valeur) ? DateTime.fromISO(valeur, { zone: 'utc' }) : undefined;
-    if (!murale?.isValid) {
+    const date = FORMAT_SAISIE.test(valeur) ? DateTime.fromISO(valeur, { zone: ZONE_PARIS }) : undefined;
+    if (!date?.isValid) {
       throw new ErreurMetier(
         'DATE_INVALIDE',
         `Date « ${valeur} » invalide : format attendu AAAA-MM-JJTHH:MM, en heure de Paris, sans décalage.`,
       );
     }
-    // Instants UTC dont l'heure à Paris correspond à l'heure saisie : 0 (heure inexistante), 1 ou 2 (heure ambiguë).
-    const muraleMs = murale.toMillis();
-    const decalages = new Set([ZONE_PARIS.offset(muraleMs - TROIS_HEURES_MS), ZONE_PARIS.offset(muraleMs + TROIS_HEURES_MS)]);
-    const candidats = [...decalages]
-      .map((decalage) => muraleMs - decalage * 60_000)
-      .filter((instant) => ZONE_PARIS.offset(instant) * 60_000 === muraleMs - instant)
-      .sort((a, b) => a - b);
-    const premier = candidats[0];
-    if (premier === undefined) {
+    // Luxon décale une heure inexistante (passage à l'heure d'été) : si l'heure relue diffère de la saisie, elle n'existe pas.
+    const relue = date.toFormat(valeur.length > 16 ? "yyyy-MM-dd'T'HH:mm:ss" : "yyyy-MM-dd'T'HH:mm");
+    if (relue !== valeur) {
       throw new ErreurMetier(
         'DATE_INVALIDE',
         `Date « ${valeur} » invalide : cette heure n'existe pas à Paris (passage à l'heure d'été).`,
       );
     }
-    return new DateHeureParis(DateTime.fromMillis(premier, { zone: 'utc' }) as DateTime<true>);
+    // Heure ambiguë (passage à l'heure d'hiver) : Luxon prend la seconde occurrence, on retient la première.
+    const premiere = date.getPossibleOffsets().reduce((a, b) => (b.toMillis() < a.toMillis() ? b : a), date);
+    return new DateHeureParis(premiere.toUTC());
   }
 
   static depuisStockage(valeur: string): DateHeureParis {
