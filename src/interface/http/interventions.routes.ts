@@ -6,10 +6,11 @@ import { creerIntervention } from '../../application/interventions/creer-interve
 import { exporterInterventions } from '../../application/interventions/exporter-interventions';
 import { demarrerIntervention } from '../../application/interventions/demarrer-intervention';
 import { listerInterventions } from '../../application/interventions/lister-interventions';
+import { modifierIntervention } from '../../application/interventions/modifier-intervention';
 import { utilisateurCourant } from './identification';
 import { interventionVersJson } from './presentation';
 import { exportVersCsv } from './export-csv';
-import { corpsCorrectionDuree, corpsCreation, filtresListe, parametresIntervention, parametresSite, periodeExport } from './schemas';
+import { corpsCorrectionDuree, corpsCreation, corpsModification, filtresListe, parametresIntervention, parametresSite, periodeExport } from './schemas';
 
 export function routesInterventions(depots: Depots): Router {
   const routes = Router();
@@ -17,6 +18,12 @@ export function routesInterventions(depots: Depots): Router {
   routes.post('/interventions', (req, res) => {
     const intervention = creerIntervention(depots, utilisateurCourant(res), corpsCreation.parse(req.body));
     res.status(201).json(interventionVersJson(intervention));
+  });
+
+  routes.patch('/interventions/:id', (req, res) => {
+    const { id } = parametresIntervention.parse(req.params);
+    const commande = corpsModification.parse(req.body);
+    res.json(interventionVersJson(modifierIntervention(depots, utilisateurCourant(res), id, commande)));
   });
 
   routes.post('/interventions/:id/demarrer', (req, res) => {

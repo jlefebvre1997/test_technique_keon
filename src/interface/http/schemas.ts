@@ -31,3 +31,14 @@ export const periodeExport = z.strictObject({
 });
 
 export const corpsCorrectionDuree = z.strictObject({ dureeMinutes: z.number() });
+
+/** Site, équipement et technicien sont fixés à la création ; le statut ne change que par les actions. */
+export const corpsModification = z
+  .strictObject({
+    dateDebut: z.string().optional(),
+    dureeMinutes: z.number().nullable().optional(),
+    description: z.string().optional(),
+  })
+  .refine((corps) => Object.keys(corps).length > 0, {
+    message: 'Au moins un champ à modifier : dateDebut, dureeMinutes ou description.',
+  });
