@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { STATUTS } from '../../domaine/maintenance/intervention.machine';
 
 // Contrôle de forme uniquement : les règles métier (durée positive, date en heure de Paris,
 // description non vide…) sont vérifiées par le domaine, qui renvoie un code d'erreur stable.
@@ -15,3 +16,11 @@ export const corpsCreation = z.strictObject({
 });
 
 export const parametresIntervention = z.object({ id: z.coerce.number().int().positive() });
+
+export const parametresSite = z.object({ siteId: z.coerce.number().int().positive() });
+
+export const filtresListe = z.strictObject({
+  statut: z.enum(STATUTS).optional(),
+  du: z.string().optional(),
+  au: z.string().optional(),
+});

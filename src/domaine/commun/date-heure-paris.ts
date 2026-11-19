@@ -43,6 +43,10 @@ export class DateHeureParis {
     return new DateHeureParis(instant);
   }
 
+  static depuisInstant(instant: DateTime<true>): DateHeureParis {
+    return new DateHeureParis(instant.toUTC());
+  }
+
   static maintenant(): DateHeureParis {
     return new DateHeureParis(DateTime.utc().startOf('second'));
   }

@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm';
+import { and, asc, eq, gte, lt } from 'drizzle-orm';
 import { DateHeureParis } from '../../domaine/commun/date-heure-paris';
-import type { DepotInterventions } from '../../domaine/maintenance/depot-interventions';
+import type { DepotInterventions, FiltresInterventions } from '../../domaine/maintenance/depot-interventions';
 import { Intervention } from '../../domaine/maintenance/intervention';
 import type { BaseDeDonnees } from './client';
 import { intervention } from './schema';
@@ -13,6 +13,24 @@ export class DepotInterventionsDrizzle implements DepotInterventions {
   trouver(id: number): Intervention | undefined {
     const ligne = this.db.select().from(intervention).where(eq(intervention.id, id)).get();
     return ligne && versDomaine(ligne);
+  }
+
+  listerParSite(siteId: number, { statut, periode }: FiltresInterventions): Intervention[] {
+    return this.db
+      .select()
+      .from(intervention)
+      .where(
+        and(
+          eq(intervention.siteId, siteId),
+          statut && eq(intervention.statut, statut),
+          // Dates stockées en ISO UTC à largeur fixe : la comparaison de texte suit l'ordre chronologique.
+          periode && gte(intervention.dateDebut, periode.debut.versStockage()),
+          periode && lt(intervention.dateDebut, periode.finExclue.versStockage()),
+        ),
+      )
+      .orderBy(asc(intervention.dateDebut), asc(intervention.id))
+      .all()
+      .map(versDomaine);
   }
 
   enregistrer(aEnregistrer: Intervention): Intervention {
