@@ -62,7 +62,7 @@ Règles de dépendance :
 
 - **Agrégat `Intervention`** (racine). Il porte les invariants (RG-3, RG-4, H2, H13) et expose des méthodes métier : `demarrer()`, `cloturer()`, `modifier(...)`, `corrigerDuree(...)`. Son statut ne change que par la machine à états (§4).
 - **Objets-valeurs** :
-  - `DureeMinutes` : entier strictement positif (H7) ;
+  - durée en minutes, entier strictement positif (H7), contrôlée par l'agrégat ;
   - `DateHeureParis` : saisie et restitution en heure de Paris, stockage en UTC (RG-6) ;
   - `Periode` : jours entiers en heure de Paris, bornes incluses (H8) ;
   - `Statut`.
@@ -75,52 +75,39 @@ Règles de dépendance :
 ```
 src/
   domaine/
-    maintenance/
-      intervention.ts            agrégat
-      intervention.machine.ts    machine à états XState
-      duree-minutes.ts
-      statut.ts
-      depot-interventions.ts     interface du dépôt
-      erreurs.ts
-    referentiel/
-      site.ts
-      equipement.ts
-      utilisateur.ts
-      depot-referentiel.ts       interface du dépôt
     commun/
-      date-heure-paris.ts
-      periode.ts
+      erreurs.ts                 erreurs métier typées (code stable)
+      date-heure-paris.ts        objet-valeur DateHeureParis (RG-6)
+    maintenance/
+      intervention.ts            agrégat (invariants, durée, description)
+      intervention.machine.ts    statuts et machine à états XState
+      depot-interventions.ts     interface du dépôt
+    referentiel/
+      referentiel.ts             Site, Equipement, Utilisateur, interface du dépôt
   application/
     droits.ts                    règles CASL par rôle
-    interventions/
-      creer-intervention.ts
-      demarrer-intervention.ts
-      cloturer-intervention.ts
-      modifier-intervention.ts
-      corriger-duree.ts
-      lister-interventions.ts
-      exporter-interventions.ts
+    interventions/               un fichier par cas d'usage
   infrastructure/
     persistance/
       schema.ts                  schéma Drizzle
-      client.ts
+      client.ts                  ouverture de la base et migrations
       depot-interventions.drizzle.ts
       depot-referentiel.drizzle.ts
-      seed.ts                    référentiel de démonstration
-    export/
-      csv.ts
+      referentiel-demo.ts        référentiel de démonstration (seed et tests)
   interface/
     http/
-      app.ts                     création de l'app Express (sans écoute réseau, pour supertest)
-      authentification.ts        identification de l'utilisateur (§5.3)
+      app.ts                     assemblage de l'app Express (sans écoute réseau, pour supertest)
+      identification.ts          identification de l'utilisateur (§5.3)
       erreurs.ts                 erreurs métier → codes HTTP
-      interventions.routes.ts
-      schemas.ts                 schémas Zod des requêtes
+  config.ts
   server.ts                      point d'entrée : écoute du port
+scripts/                         migrer, charger le référentiel
 drizzle/                         migrations SQL générées
 tests/
   integration/
 ```
+
+Les fichiers propres à un endpoint (cas d'usage, routes, schémas Zod, objet-valeur `Periode`, export CSV) sont ajoutés avec l'endpoint concerné.
 
 **Langue du code** : les termes métier restent en français partout (`intervention`, `technicien`, `cloturer`, `dureeMinutes`, `statut`…). C'est le langage partagé avec le métier, et il ne doit pas être traduit. Les termes purement techniques (`router`, `middleware`…) restent dans leur forme usuelle.
 
@@ -187,7 +174,7 @@ Une modification d'intervention close est donc refusée par le domaine (409), qu
 
 ### 5.3 Identification de l'utilisateur
 
-L'authentification ne fait pas partie du besoin. Il faut pourtant savoir qui appelle pour appliquer RG-2 et RG-5. Le mécanisme retenu est le plus simple possible : un middleware lit l'en-tête `X-Utilisateur-Id`, charge l'utilisateur, son rôle et ses sites depuis le référentiel, et rejette la requête (401) si l'en-tête est absent ou inconnu. Il est isolé dans `interface/http/authentification.ts` pour être remplacé sans toucher au reste. Il est **non sécurisé**, et le README le dit explicitement.
+L'authentification ne fait pas partie du besoin. Il faut pourtant savoir qui appelle pour appliquer RG-2 et RG-5. Le mécanisme retenu est le plus simple possible : un middleware lit l'en-tête `X-Utilisateur-Id`, charge l'utilisateur, son rôle et ses sites depuis le référentiel, et rejette la requête (401) si l'en-tête est absent ou inconnu. Il est isolé dans `interface/http/identification.ts` pour être remplacé sans toucher au reste. Il est **non sécurisé**, et le README le dit explicitement.
 
 ## 6. Cas d'usage
 

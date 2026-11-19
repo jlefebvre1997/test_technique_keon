@@ -1,0 +1,400 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "1b5ba361-408b-479e-8f72-54f68669c3c0",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "equipement": {
+      "name": "equipement",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "site_id": {
+          "name": "site_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "libelle": {
+          "name": "libelle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "equipement_code_par_site": {
+          "name": "equipement_code_par_site",
+          "columns": [
+            "site_id",
+            "code"
+          ],
+          "isUnique": true
+        },
+        "equipement_id_site": {
+          "name": "equipement_id_site",
+          "columns": [
+            "id",
+            "site_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "equipement_site_id_site_id_fk": {
+          "name": "equipement_site_id_site_id_fk",
+          "tableFrom": "equipement",
+          "tableTo": "site",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "intervention": {
+      "name": "intervention",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "site_id": {
+          "name": "site_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "equipement_id": {
+          "name": "equipement_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "technicien_id": {
+          "name": "technicien_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "date_debut": {
+          "name": "date_debut",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "duree_minutes": {
+          "name": "duree_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "statut": {
+          "name": "statut",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'OUVERTE'"
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "modifie_le": {
+          "name": "modifie_le",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_intervention_site_date": {
+          "name": "idx_intervention_site_date",
+          "columns": [
+            "site_id",
+            "date_debut"
+          ],
+          "isUnique": false
+        },
+        "idx_intervention_site_statut": {
+          "name": "idx_intervention_site_statut",
+          "columns": [
+            "site_id",
+            "statut"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "intervention_site_id_site_id_fk": {
+          "name": "intervention_site_id_site_id_fk",
+          "tableFrom": "intervention",
+          "tableTo": "site",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "intervention_technicien_id_utilisateur_id_fk": {
+          "name": "intervention_technicien_id_utilisateur_id_fk",
+          "tableFrom": "intervention",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "technicien_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "intervention_equipement_du_site": {
+          "name": "intervention_equipement_du_site",
+          "tableFrom": "intervention",
+          "tableTo": "equipement",
+          "columnsFrom": [
+            "equipement_id",
+            "site_id"
+          ],
+          "columnsTo": [
+            "id",
+            "site_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "intervention_duree_positive": {
+          "name": "intervention_duree_positive",
+          "value": "duree_minutes IS NULL OR duree_minutes > 0"
+        },
+        "intervention_description_non_vide": {
+          "name": "intervention_description_non_vide",
+          "value": "length(trim(description)) > 0"
+        },
+        "intervention_statut": {
+          "name": "intervention_statut",
+          "value": "statut IN ('OUVERTE', 'EN_COURS', 'CLOSE')"
+        },
+        "intervention_close_avec_duree": {
+          "name": "intervention_close_avec_duree",
+          "value": "statut <> 'CLOSE' OR duree_minutes IS NOT NULL"
+        }
+      }
+    },
+    "rattachement_site": {
+      "name": "rattachement_site",
+      "columns": {
+        "utilisateur_id": {
+          "name": "utilisateur_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "site_id": {
+          "name": "site_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rattachement_site_utilisateur_id_utilisateur_id_fk": {
+          "name": "rattachement_site_utilisateur_id_utilisateur_id_fk",
+          "tableFrom": "rattachement_site",
+          "tableTo": "utilisateur",
+          "columnsFrom": [
+            "utilisateur_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rattachement_site_site_id_site_id_fk": {
+          "name": "rattachement_site_site_id_site_id_fk",
+          "tableFrom": "rattachement_site",
+          "tableTo": "site",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "rattachement_site_utilisateur_id_site_id_pk": {
+          "columns": [
+            "utilisateur_id",
+            "site_id"
+          ],
+          "name": "rattachement_site_utilisateur_id_site_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "site": {
+      "name": "site",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "site_code_unique": {
+          "name": "site_code_unique",
+          "columns": [
+            "code"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "utilisateur": {
+      "name": "utilisateur",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "matricule": {
+          "name": "matricule",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nom": {
+          "name": "nom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "prenom": {
+          "name": "prenom",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "utilisateur_matricule_unique": {
+          "name": "utilisateur_matricule_unique",
+          "columns": [
+            "matricule"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "utilisateur_role": {
+          "name": "utilisateur_role",
+          "value": "role IN ('TECHNICIEN', 'RESPONSABLE_EXPLOITATION')"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
