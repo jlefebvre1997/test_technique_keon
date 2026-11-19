@@ -1,0 +1,17 @@
+Le besoin
+Les équipes d'exploitation veulent un petit module de suivi des interventions de maintenance sur les sites de méthanisation.
+Règles métier communiquées par le responsable exploitation :
+Une intervention a : un site, un équipement, un technicien, une date de début, une durée (en heures), une description et un statut (OUVERTE, EN_COURS, CLOSE).
+Un technicien ne voit et ne crée des interventions que sur ses sites. Un responsable d'exploitation voit tous les sites.
+On ne peut clôturer une intervention que si sa durée est renseignée.
+Une intervention close ne peut plus être modifiée.
+Le responsable d'exploitation doit pouvoir corriger la durée d'une intervention après sa clôture.
+Les dates sont saisies et affichées en heure de Paris.
+Un export CSV des interventions d'un site sur une période est demandé pour le contrôle de gestion.
+
+Ce que nous attendons
+Une API (ou un back-end) couvrant : créer, passer en cours, clôturer, lister par site avec filtres (statut, période), exporter en CSV.
+Des tests automatisés sur les règles métier (au minimum règles 2, 3, 4/5 et 6).
+Le fichier de règles de l'agent que vous avez utilisé ou que vous laisseriez à l'équipe.
+Un README court : lancer le projet, choix techniques, hypothèses, ce que vous feriez avec une journée de plus.
+Une interface est facultative. Persistance libre (SQLite, PostgreSQL, en mémoire si justifié).
