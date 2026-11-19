@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { Depots } from '../../application/depots';
+import { cloturerIntervention } from '../../application/interventions/cloturer-intervention';
 import { creerIntervention } from '../../application/interventions/creer-intervention';
 import { demarrerIntervention } from '../../application/interventions/demarrer-intervention';
 import { utilisateurCourant } from './identification';
@@ -17,6 +18,11 @@ export function routesInterventions(depots: Depots): Router {
   routes.post('/interventions/:id/demarrer', (req, res) => {
     const { id } = parametresIntervention.parse(req.params);
     res.json(interventionVersJson(demarrerIntervention(depots, utilisateurCourant(res), id)));
+  });
+
+  routes.post('/interventions/:id/cloturer', (req, res) => {
+    const { id } = parametresIntervention.parse(req.params);
+    res.json(interventionVersJson(cloturerIntervention(depots, utilisateurCourant(res), id)));
   });
 
   return routes;
