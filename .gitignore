@@ -1,3 +1,4 @@
 node_modules/
 donnees/
 *.db
+.playwright-mcp/

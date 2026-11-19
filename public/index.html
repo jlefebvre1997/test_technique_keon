@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Démo interventions</title>
+<style>
+  body { font: 14px system-ui, sans-serif; margin: 16px; color: #222; background: #fafafa; }
+  h1 { font-size: 18px; margin: 0 0 12px; }
+  fieldset { border: 1px solid #ccc; border-radius: 6px; margin: 0 0 12px; padding: 8px 12px; background: #fff; }
+  legend { font-weight: 600; }
+  label { margin-right: 12px; white-space: nowrap; }
+  input, select, button { font: inherit; padding: 3px 6px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; }
+  th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; }
+  th { background: #f0f0f0; }
+  .OUVERTE { color: #0a58ca; } .EN_COURS { color: #b35c00; } .CLOSE { color: #198754; }
+  #message { min-height: 1.4em; margin: 8px 0; font-weight: 600; }
+  #message.erreur { color: #c00; } #message.ok { color: #198754; }
+</style>
+</head>
+<body>
+<h1>Suivi des interventions : démo de l'API</h1>
+
+<fieldset>
+  <legend>Utilisateur (en-tête X-Utilisateur-Id)</legend>
+  <select id="utilisateur">
+    <option value="1">T001 Léa Martin : technicienne, Beauce</option>
+    <option value="2">T002 Hugo Bernard : technicien, Picardie</option>
+    <option value="3">R001 Claire Petit : responsable d'exploitation</option>
+  </select>
+</fieldset>
+
+<fieldset>
+  <legend>Liste</legend>
+  <label>Site <select id="site"><option value="1">METHA-BEAUCE</option><option value="2">METHA-PICARDIE</option></select></label>
+  <label>Statut <select id="statut"><option value="">tous</option><option>OUVERTE</option><option>EN_COURS</option><option>CLOSE</option></select></label>
+  <label>Du <input id="du" type="date"></label>
+  <label>Au <input id="au" type="date"></label>
+  <button id="lister">Lister</button>
+  <button id="exporter">Exporter en CSV</button>
+</fieldset>
+
+<fieldset>
+  <legend>Nouvelle intervention (sur le site sélectionné)</legend>
+  <label>Équipement <select id="equipement"></select></label>
+  <label>Technicien <select id="technicien"><option value="">moi</option><option value="1">T001</option><option value="2">T002</option></select></label>
+  <label>Début (heure de Paris) <input id="dateDebut" type="datetime-local"></label>
+  <label>Durée (min) <input id="duree" type="number" min="1" style="width:6em"></label>
+  <label>Description <input id="description" size="30"></label>
+  <button id="creer">Créer</button>
+</fieldset>
+
+<div id="message"></div>
+
+<table>
+  <thead><tr><th>Réf.</th><th>Équipement</th><th>Technicien</th><th>Début (Paris)</th><th>Durée (min)</th><th>Description</th><th>Statut</th><th>Actions</th></tr></thead>
+  <tbody id="lignes"></tbody>
+</table>
+
+<script>
+// Référentiel de démonstration (src/infrastructure/persistance/referentiel-demo.ts) : l'API ne l'expose pas.
+const EQUIPEMENTS = { 1: [[1, 'DIGESTEUR-1'], [2, 'COGEN-1']], 2: [[3, 'DIGESTEUR-1']] };
+const NOM_EQUIPEMENT = { 1: 'DIGESTEUR-1', 2: 'COGEN-1', 3: 'DIGESTEUR-1' };
+const NOM_TECHNICIEN = { 1: 'T001', 2: 'T002' };
+
+const $ = (id) => document.getElementById(id);
+
+function afficher(texte, erreur) {
+  $('message').textContent = texte;
+  $('message').className = erreur ? 'erreur' : 'ok';
+}
+
+async function api(methode, url, corps) {
+  const reponse = await fetch(url, {
+    method: methode,
+    headers: { 'X-Utilisateur-Id': $('utilisateur').value, 'Content-Type': 'application/json' },
+    body: corps === undefined ? undefined : JSON.stringify(corps),
+  });
+  if (!reponse.ok) {
+    const erreur = await reponse.json().catch(() => ({}));
+    throw new Error(`${reponse.status} ${erreur.code ?? ''} : ${erreur.message ?? ''}`);
+  }
+  return reponse;
+}
+
+function filtres() {
+  const p = new URLSearchParams();
+  if ($('statut').value) p.set('statut', $('statut').value);
+  if ($('du').value) p.set('du', $('du').value);
+  if ($('au').value) p.set('au', $('au').value);
+  return p;
+}
+
+async function lister() {
+  const interventions = await (await api('GET', `/sites/${$('site').value}/interventions?${filtres()}`)).json();
+  $('lignes').innerHTML = '';
+  for (const i of interventions) {
+    const tr = document.createElement('tr');
+    const cellules = [i.id, NOM_EQUIPEMENT[i.equipementId], NOM_TECHNICIEN[i.technicienId], i.dateDebut, i.dureeMinutes ?? '', i.description, i.statut];
+    for (const valeur of cellules) {
+      const td = document.createElement('td');
+      td.textContent = valeur;
+      tr.append(td);
+    }
+    tr.lastChild.className = i.statut;
+    const actions = document.createElement('td');
+    const bouton = (libelle, action) => {
+      const b = document.createElement('button');
+      b.textContent = libelle;
+      b.onclick = () => executer(action);
+      actions.append(b, ' ');
+    };
+    if (i.statut === 'OUVERTE') bouton('Démarrer', () => api('POST', `/interventions/${i.id}/demarrer`));
+    if (i.statut === 'EN_COURS') bouton('Clôturer', () => api('POST', `/interventions/${i.id}/cloturer`));
+    if (i.statut !== 'CLOSE') {
+      bouton('Durée…', () => {
+        const valeur = prompt('Durée en minutes (vide pour effacer)', i.dureeMinutes ?? '');
+        if (valeur === null) return;
+        return api('PATCH', `/interventions/${i.id}`, { dureeMinutes: valeur === '' ? null : Number(valeur) });
+      });
+    } else {
+      bouton('Corriger la durée…', () => {
+        const valeur = prompt('Durée corrigée en minutes', i.dureeMinutes);
+        if (valeur === null) return;
+        return api('POST', `/interventions/${i.id}/corriger-duree`, { dureeMinutes: Number(valeur) });
+      });
+    }
+    tr.append(actions);
+    $('lignes').append(tr);
+  }
+  afficher(`${interventions.length} intervention(s)`);
+}
+
+async function executer(action) {
+  try {
+    await action();
+    await lister();
+  } catch (e) {
+    afficher(e.message, true);
+  }
+}
+
+async function exporter() {
+  try {
+    if (!$('du').value || !$('au').value) throw new Error("L'export demande une période : renseignez Du et Au.");
+    const reponse = await api('GET', `/sites/${$('site').value}/interventions/export.csv?du=${$('du').value}&au=${$('au').value}`);
+    const lien = document.createElement('a');
+    lien.href = URL.createObjectURL(await reponse.blob());
+    lien.download = `interventions-site-${$('site').value}-${$('du').value}-${$('au').value}.csv`;
+    lien.click();
+    afficher('Export téléchargé');
+  } catch (e) {
+    afficher(e.message, true);
+  }
+}
+
+function remplirEquipements() {
+  $('equipement').innerHTML = EQUIPEMENTS[$('site').value].map(([id, code]) => `<option value="${id}">${code}</option>`).join('');
+}
+
+$('creer').onclick = () =>
+  executer(() =>
+    api('POST', '/interventions', {
+      siteId: Number($('site').value),
+      equipementId: Number($('equipement').value),
+      ...($('technicien').value && { technicienId: Number($('technicien').value) }),
+      dateDebut: $('dateDebut').value,
+      ...($('duree').value && { dureeMinutes: Number($('duree').value) }),
+      description: $('description').value,
+    }),
+  );
+$('lister').onclick = () => executer(() => {});
+$('exporter').onclick = exporter;
+$('site').onchange = () => { remplirEquipements(); executer(() => {}); };
+$('utilisateur').onchange = () => executer(() => {});
+
+remplirEquipements();
+const maintenant = new Date();
+$('dateDebut').value = new Date(maintenant - maintenant.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+$('du').value = `${maintenant.getFullYear()}-01-01`;
+$('au').value = `${maintenant.getFullYear()}-12-31`;
+$('description').value = 'Contrôle de routine';
+executer(() => {});
+</script>
+</body>
+</html>

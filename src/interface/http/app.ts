@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import type { BaseDeDonnees } from '../../infrastructure/persistance/client';
 import { DepotInterventionsDrizzle } from '../../infrastructure/persistance/depot-interventions.drizzle';
@@ -15,6 +16,8 @@ export function creerApp(db: BaseDeDonnees) {
 
   const app = express();
   app.use(express.json());
+  // Page de démonstration (public/index.html), servie sans identification.
+  app.use(express.static(fileURLToPath(new URL('../../../public', import.meta.url))));
   app.use(identification(depots.referentiel));
   app.use(routesInterventions(depots));
   app.use((_req, res) => {
