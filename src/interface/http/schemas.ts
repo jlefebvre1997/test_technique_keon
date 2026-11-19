@@ -29,3 +29,5 @@ export const periodeExport = z.strictObject({
   du: z.string().optional(),
   au: z.string().optional(),
 });
+
+export const corpsCorrectionDuree = z.strictObject({ dureeMinutes: z.number() });

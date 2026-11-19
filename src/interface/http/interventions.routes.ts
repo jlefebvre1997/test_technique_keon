@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type { Depots } from '../../application/depots';
 import { cloturerIntervention } from '../../application/interventions/cloturer-intervention';
+import { corrigerDuree } from '../../application/interventions/corriger-duree';
 import { creerIntervention } from '../../application/interventions/creer-intervention';
 import { exporterInterventions } from '../../application/interventions/exporter-interventions';
 import { demarrerIntervention } from '../../application/interventions/demarrer-intervention';
@@ -8,7 +9,7 @@ import { listerInterventions } from '../../application/interventions/lister-inte
 import { utilisateurCourant } from './identification';
 import { interventionVersJson } from './presentation';
 import { exportVersCsv } from './export-csv';
-import { corpsCreation, filtresListe, parametresIntervention, parametresSite, periodeExport } from './schemas';
+import { corpsCorrectionDuree, corpsCreation, filtresListe, parametresIntervention, parametresSite, periodeExport } from './schemas';
 
 export function routesInterventions(depots: Depots): Router {
   const routes = Router();
@@ -26,6 +27,12 @@ export function routesInterventions(depots: Depots): Router {
   routes.post('/interventions/:id/cloturer', (req, res) => {
     const { id } = parametresIntervention.parse(req.params);
     res.json(interventionVersJson(cloturerIntervention(depots, utilisateurCourant(res), id)));
+  });
+
+  routes.post('/interventions/:id/corriger-duree', (req, res) => {
+    const { id } = parametresIntervention.parse(req.params);
+    const { dureeMinutes } = corpsCorrectionDuree.parse(req.body);
+    res.json(interventionVersJson(corrigerDuree(depots, utilisateurCourant(res), id, dureeMinutes)));
   });
 
   routes.get('/sites/:siteId/interventions', (req, res) => {
