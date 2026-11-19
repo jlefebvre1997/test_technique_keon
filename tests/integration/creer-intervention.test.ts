@@ -1,15 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { demarrerApi, EQUIPEMENTS, SITES, UTILISATEURS } from './outils';
+import { demarrerApi, EQUIPEMENTS, nouvelleIntervention as creation, SITES, UTILISATEURS } from './outils';
 
 const { technicienBeauce, technicienPicardie, responsable } = UTILISATEURS;
-
-const creation = (surcharge: object = {}) => ({
-  siteId: SITES.beauce.id,
-  equipementId: EQUIPEMENTS.digesteurBeauce.id,
-  dateDebut: '2026-01-15T10:30',
-  description: 'Remplacement du joint de la trappe de visite',
-  ...surcharge,
-});
 
 describe('POST /interventions : créer une intervention', () => {
   it('RG-1 : crée une intervention OUVERTE, sans durée, pour le technicien qui la saisit', async () => {

@@ -13,3 +13,5 @@ export const corpsCreation = z.strictObject({
   dureeMinutes: z.number().nullable().optional(),
   description: z.string(),
 });
+
+export const parametresIntervention = z.object({ id: z.coerce.number().int().positive() });
